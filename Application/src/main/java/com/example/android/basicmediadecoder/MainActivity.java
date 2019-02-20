@@ -23,6 +23,7 @@ import android.media.MediaCodec;
 import android.media.MediaExtractor;
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -35,20 +36,23 @@ import com.example.android.common.media.MediaCodecWrapper;
 
 import java.io.IOException;
 
+import static android.content.ContentValues.TAG;
+
 /**
  * This activity uses a {@link android.view.TextureView} to render the frames of a video decoded using
  * {@link android.media.MediaCodec} API.
  */
 public class MainActivity extends Activity {
 
-    private TextureView mPlaybackView;
+    private TextureView mPlaybackView;  // 영상 출력 영역
     private TimeAnimator mTimeAnimator = new TimeAnimator();
 
     // A utility that wraps up the underlying input and output buffer processing operations
     // into an east to use API.
     private MediaCodecWrapper mCodecWrapper;
     private MediaExtractor mExtractor = new MediaExtractor();
-    TextView mAttribView = null;
+
+    TextView mAttribView = null;    // 문자열 출력용
 
 
     /**
@@ -58,9 +62,9 @@ public class MainActivity extends Activity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.sample_main);
-        mPlaybackView = (TextureView) findViewById(R.id.PlaybackView);
-        mAttribView =  (TextView)findViewById(R.id.AttribView);
 
+        mPlaybackView = (TextureView) findViewById(R.id.PlaybackView);  // 영상 출력
+        mAttribView =  (TextView)findViewById(R.id.AttribView);     // 문자열 출력
     }
 
     @Override
@@ -73,13 +77,15 @@ public class MainActivity extends Activity {
     @Override
     protected void onPause() {
         super.onPause();
+
         if(mTimeAnimator != null && mTimeAnimator.isRunning()) {
             mTimeAnimator.end();
         }
 
-        if (mCodecWrapper != null ) {
+        if (mCodecWrapper != null) {
             mCodecWrapper.stopAndRelease();
-            mExtractor.release();
+            if (mExtractor != null)
+                mExtractor.release();
         }
     }
 
@@ -100,6 +106,9 @@ public class MainActivity extends Activity {
         Uri videoUri = Uri.parse("android.resource://"
                 + getPackageName() + "/"
                 + R.raw.vid_bigbuckbunny);
+
+        // TODO
+        // 파일을 찾아서 재생하도록 수정하자
 
         try {
 
@@ -145,6 +154,7 @@ public class MainActivity extends Activity {
                     boolean isEos = ((mExtractor.getSampleFlags() & MediaCodec
                             .BUFFER_FLAG_END_OF_STREAM) == MediaCodec.BUFFER_FLAG_END_OF_STREAM);
 
+                    Log.d(TAG, "onTimeUpdate: isEos = " + isEos);
                     // BEGIN_INCLUDE(write_sample)
                     if (!isEos) {
                         // Try to submit the sample to the codec and if successful advance the

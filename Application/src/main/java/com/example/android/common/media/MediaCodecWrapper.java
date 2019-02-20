@@ -89,9 +89,12 @@ public class MediaCodecWrapper {
      * Releases resources and ends the encoding/decoding session.
      */
     public void stopAndRelease() {
-        mDecoder.stop();
-        mDecoder.release();
-        mDecoder = null;
+        if (mDecoder != null) {     // 재생이 완료된 후, 종료하면 에러가 발생하여 NULL CHECK를 추가함.
+            mDecoder.stop();
+            mDecoder.release();
+            mDecoder = null;
+        }
+
         mHandler = null;
     }
 
